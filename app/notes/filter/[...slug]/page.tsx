@@ -5,52 +5,37 @@ import {
   HydrationBoundary,
 } from "@tanstack/react-query";
 import NotesClient from "./Notes.client";
-import type { Note } from "@/types/note";
+import type { Metadata } from "next";
 
-interface Props {
-  params: { slug: string[]; id: string };
-}
-
-export async function generateMetadata({ params }: Props) {
-  const { id } = params;
-
-  const res = await fetch(`https://notehub-public.goit.study/api/notes/${id}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-    },
-  });
-
-  if (!res.ok) {
-    return {
-      title: "Note not found",
-      description: "",
-    };
-  }
-
-  const note = (await res.json()) as Note;
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string[] };
+}): Promise<Metadata> {
+  const tag = params.slug[0] || "All";
 
   return {
-    title: `Note: ${note.title}`,
-    description: note.content.slice(0, 30),
+    title: `Notes tagged: ${tag}`,
+    description: `Browse all notes with tag "${tag}" on NoteHub`,
     openGraph: {
-      title: `Note: ${note.title}`,
-      description: note.content.slice(0, 100),
-      url: `https://notehub.com/notes/${id}`,
+      title: `Notes tagged: ${tag}`,
+      description: `Browse all notes with tag "${tag}" on NoteHub`,
+      url: `https://notehub.com/notes/${tag}`,
       siteName: "NoteHub",
       images: [
         {
           url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
           width: 1200,
           height: 630,
-          alt: note.title,
+          alt: `Notes tagged: ${tag}`,
         },
       ],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: note.title,
-      description: note.content.slice(0, 30),
+      title: `Notes tagged: ${tag}`,
+      description: `Browse all notes with tag "${tag}" on NoteHub`,
       images: ["https://ac.goit.global/fullstack/react/notehub-og-meta.jpg"],
     },
   };
@@ -59,10 +44,9 @@ export async function generateMetadata({ params }: Props) {
 export default async function NotesPage({
   params,
 }: {
-  params: Promise<{ slug: string[]; id: string }>;
+  params: { slug: string[] };
 }) {
-  const { slug } = await params;
-  const tag = slug?.[0] || "";
+  const tag = params.slug[0] || "";
 
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
