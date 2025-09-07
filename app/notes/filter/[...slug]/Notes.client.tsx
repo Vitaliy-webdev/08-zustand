@@ -6,8 +6,7 @@ import { fetchNotes } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
 import SearchBox from "@/components/SearchBox/SearchBox";
-import Modal from "@/components/Modal/Modal";
-import NoteForm from "@/components/NoteForm/NoteForm";
+import Link from "next/link";
 import css from "./NotesPage.module.css";
 
 interface Props {
@@ -17,7 +16,6 @@ interface Props {
 export default function NotesClient({ initialTag }: Props) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { data, isLoading, isError } = useQuery({
@@ -41,6 +39,7 @@ export default function NotesClient({ initialTag }: Props) {
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox value={search} onChange={handleSearchChange} />
+
         {data && data.totalPages > 1 && (
           <Pagination
             currentPage={page}
@@ -48,20 +47,15 @@ export default function NotesClient({ initialTag }: Props) {
             onPageChange={setPage}
           />
         )}
-        <button className={css.button} onClick={() => setIsModalOpen(true)}>
-          Create note +
-        </button>
+
+        <Link href="/notes/action/create">
+          <button className={css.button}>Create note +</button>
+        </Link>
       </header>
 
       {isLoading && <p>Loading...</p>}
       {isError && <p>Error loading notes</p>}
       {data && data.notes.length > 0 && <NoteList notes={data.notes} />}
-
-      {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onClose={() => setIsModalOpen(false)} />
-        </Modal>
-      )}
     </div>
   );
 }
